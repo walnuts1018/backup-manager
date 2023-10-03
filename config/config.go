@@ -15,9 +15,15 @@ type Config_t struct {
 	SambaHostSSHUser      string `env:"SAMBA_HOST_SSH_USER"`
 	SambaHostSSHKeyPath   string `env:"SAMBA_HOST_SSH_KEY_PATH"`
 	SambaHostSSHPublicKey string `env:"SAMBA_HOST_SSH_PUBLIC_KEY"`
+	SambaSrcDir           string `env:"SAMBA_SRC_DIR"`
+	SambaDstDir           string `env:"SAMBA_DST_DIR"`
+	Logfile               string `env:"LOG_FILE"`
 }
 
-var Config = Config_t{}
+var Config = Config_t{
+	SambaHostSSHPort: "22",
+	Logfile:          "/var/log/backup-manager.log",
+}
 
 func LoadConfig() error {
 	err := godotenv.Load(".env")

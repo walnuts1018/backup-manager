@@ -1,13 +1,15 @@
 package samba
 
 import (
-	"bytes"
 	"fmt"
+	"io"
 	"os"
 
 	"github.com/walnuts1018/backup-manager/config"
 	"github.com/walnuts1018/backup-manager/domain"
+	"github.com/walnuts1018/backup-manager/timeJST"
 	"golang.org/x/crypto/ssh"
+	"golang.org/x/exp/slog"
 )
 
 type sambaClient struct {
@@ -39,30 +41,28 @@ func NewClient() (domain.BackupClient, error) {
 	return &sambaClient{client}, nil
 }
 
-func (c *sambaClient) Backup() error {
+func (c *sambaClient) Backup(logWriter io.Writer) error {
+	slog.Info("start backup")
 	session, err := c.client.NewSession()
 	if err != nil {
 		return fmt.Errorf("failed to create session: %s", err)
 	}
 	defer session.Close()
 
-	srcdir := "/mnt/share/"
-	dstdir := "/mnt/HDD1TB/smb-backup"
+	srcdir := config.Config.SambaSrcDir
+	dstdir := config.Config.SambaDstDir
+	datedir := dstdir + "/" + timeJST.Now().Format("backup-2006-01-02_15h04m05s")
 	command := fmt.Sprintf(`
 		LATESTBKUPDIR=$(ls %v | tail -n 1)
-		DATEDIR=%v/$(date +%%Y-%%m-%%d-%%H-%%M-%%S)
-		mkdir $DATEDIR
-		rsync -avh --link-dest="%v/$LATESTBKUPDIR" %v "$DATEDIR"
-	`, dstdir, dstdir, dstdir, srcdir)
+		mkdir %v
+		rsync -avh --link-dest="%v/$LATESTBKUPDIR" %v "%v"
+	`, dstdir, datedir, dstdir, srcdir, datedir)
 
-	var b bytes.Buffer
-	session.Stdout = &b
+	session.Stdout = logWriter
 	err = session.Run(command)
-	fmt.Println(b.String())
 	if err != nil {
 		return fmt.Errorf("failed to run command: %s", err)
 	}
-	b.Reset()
 
 	return nil
 }
