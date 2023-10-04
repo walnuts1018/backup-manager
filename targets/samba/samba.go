@@ -13,6 +13,7 @@ import (
 )
 
 type sambaClient struct {
+	config *ssh.ClientConfig
 	client *ssh.Client
 }
 
@@ -34,14 +35,19 @@ func NewClient() (domain.BackupClient, error) {
 		},
 		HostKeyCallback: ssh.FixedHostKey(hostKey),
 	}
-	client, err := ssh.Dial("tcp", fmt.Sprintf("%v:%v", config.Config.SambaHostSSHURL, config.Config.SambaHostSSHPort), sambaconfig)
-	if err != nil {
-		return nil, fmt.Errorf("dial failed: %s", err)
-	}
-	return &sambaClient{client}, nil
+
+	return &sambaClient{
+		config: sambaconfig,
+	}, nil
 }
 
 func (c *sambaClient) Backup(logWriter io.Writer) error {
+	client, err := ssh.Dial("tcp", fmt.Sprintf("%v:%v", config.Config.SambaHostSSHURL, config.Config.SambaHostSSHPort), c.config)
+	if err != nil {
+		return fmt.Errorf("dial failed: %s", err)
+	}
+	c.client = client
+
 	slog.Info("start backup")
 	session, err := c.client.NewSession()
 	if err != nil {
