@@ -83,11 +83,9 @@ jobs:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_URL }}
           SLACK_USERNAME: GitHub Actions
           SLACK_ICON: "https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png"
-          SLACK_TITLE: Backup Manager id:mage build succeeded
+          SLACK_TITLE: Backup Manager image build succeeded
           SLACK_MESSAGE: |
             Run number : #${{ github.run_number }}
-            Image tag : ${{ github.sha }}-${{ github.run_number }}
-            Image URL : 
            
   FailureAlert:
     if: ${{ failure() }}
