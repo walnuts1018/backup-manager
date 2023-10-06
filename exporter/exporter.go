@@ -12,13 +12,13 @@ import (
 var (
 	runningTasks = promauto.NewGaugeVec(
 		prometheus.GaugeOpts{
-			Name: "running_tasks",
+			Name: "running_backup_job_count",
 		},
 		[]string{},
 	)
 	jobs = promauto.NewGaugeVec(
 		prometheus.GaugeOpts{
-			Name: "jobs",
+			Name: "last_backup_job_success",
 		},
 		[]string{"name"},
 	)
